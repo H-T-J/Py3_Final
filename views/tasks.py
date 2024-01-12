@@ -35,7 +35,7 @@ class AllTasks(tb.Frame):
 
     def __init__(self, master):
         super().__init__(master)
-        self.pack(expand=TRUE, fill=X, anchor=NW)
+        self.pack(fill=X, anchor=NW)
 
         all_tasks_label = tb.Label(self, text="Your Tasks:", font=H6)
         all_tasks_label.pack(anchor=W)
@@ -44,27 +44,42 @@ class TaskForList(tb.Frame):
 
     def __init__(self, master, app, task, task_index):
         super().__init__(master)
-        self.pack(expand=TRUE, fill=BOTH, padx=100, side=TOP, anchor=N)
+        self.pack(fill=BOTH, padx=100, pady=25, side=TOP, anchor=N)
+
+        self.status_bool = tb.BooleanVar
+        self.status_bool = task.get("complete")
 
         index_label = tb.Label(self, text=f"#{task_index+1}", bootstyle=PRIMARY, font=PS, anchor=N)
-        name_label = tb.Label(self, text=task.get("name"), border=5, bootstyle=PRIMARY, font=PS)
+        name_label = tb.Label(self, text=task.get("title"), border=5, bootstyle=PRIMARY, font=PS)
 
-        status = "✅" if task.get("compleyte") else "❎"
-        label_color = SUCCESS if status == "✅" else DANGER
+        self.status = "✅" if task.get("complete") else "❎"
+        self.label_color = SUCCESS if self.status == "✅" else DANGER
 
-        status_label = tb.Label(self, text=status, bootstyle=label_color, font=PS)
+        self.status_label = tb.Label(self, text=self.status, bootstyle=self.label_color, font=PS)
 
-        detail_button = tb.Button(self, text="To task detail", command=app.show_task_view, bootstyle=PRIMARY)
+        # detail_button = tb.Button(self, text="To task detail", command=app.show_task_view, bootstyle=PRIMARY)
+        detail_button = tb.Button(self, text="Toggle Completion", command=self.toggle_completion, bootstyle=PRIMARY)
 
 
-        index_label.pack(side=LEFT, padx=(0, 25), anchor=NW)
-        name_label.pack(side=LEFT, padx=(25, 0), anchor=NW)
-        status_label.pack(side=LEFT, padx=(25, 0), anchor=NW)
-        detail_button.pack(side=LEFT, padx=(25, 0), anchor=NW)
+
+        index_label.pack(side=LEFT, padx=(0, 25), pady=5, anchor=NW)
+        name_label.pack(side=LEFT, padx=(25, 0), pady=5, anchor=NW)
+        self.status_label.pack(side=LEFT, padx=(25, 0), pady=5, anchor=NW)
+        detail_button.pack(side=LEFT, padx=(25, 0), pady=5, anchor=NW)
         # _text = f"#{index + 1} Task Name: {task.get('name')} Priority: ✅ {task.get('priority')} Status: {status}"
         # task = tb.Label(self, text=label_text, padding=(50, 0), font=PS, bootstyle=(PRIMARY, INVERSE),
         #                     borderwidth=10)
         # task.pack(pady=5)
+
+    def toggle_completion(self):
+        self.status_bool = not self.status_bool
+        print(self.status_bool)
+        self.status = "✅" if self.status_bool else "❎"
+        self.label_color = SUCCESS if self.status == "✅" else DANGER
+
+
+        self.status_label.configure(text=self.status, bootstyle=self.label_color)
+
 
 
 class TasksView(View):
@@ -73,7 +88,7 @@ class TasksView(View):
 
         self.all_tasks = []
 
-        self.create_widgets()
+        # self.create_widgets()
 
 
 
@@ -83,7 +98,7 @@ class TasksView(View):
         print(self.all_tasks)
 
 
-        all_tasks = AllTasks(self.frame)
+        show_all_tasks = AllTasks(self.frame)
 
         for index, task in enumerate(self.all_tasks):
             TaskForList(self.frame, app=self.app, task=task, task_index=index)

@@ -15,7 +15,7 @@ class TaskApp(tb.Window):
         self.email = tb.StringVar()
         self.token: dict = {}
 
-        self.url = "http://10.6.21.76:8000"
+        self.url = "http://192.168.50.220:8000"
 
         self.tasks = []
 

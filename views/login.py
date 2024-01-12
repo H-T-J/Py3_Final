@@ -53,6 +53,8 @@ class LoginView(View):
                                                                  headers={"Authorization": f"Bearer {self.app.token['access_token']}",
                                                                  "Content-Type": "application/json"}).json()
             print(self.app.views.get("view_tasks").all_tasks)
+
+            self.app.views.get("view_tasks").create_widgets()
         else:
             self.create_toast("401 Error", "Bad Credentials")
 
