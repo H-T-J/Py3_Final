@@ -1,5 +1,9 @@
 import ttkbootstrap as tb
 import requests as req
+from json import dumps
+
+
+import views.tasks
 from K import *
 from views import login, tasks
 
@@ -42,6 +46,42 @@ class TaskApp(tb.Window):
     #                         "Content-Type": "application/json"}).json()
     #
     #     return self.tasks
+    def create_task(self, task_title, task_description, task_priority):
+        data = {
+            "complete": False,
+            "description": str(task_description),
+            "priority": int(task_priority),
+            "title": str(task_title)
+        }
+
+        response = req.post(url=f"{self.url}/tasks",
+                            headers={"Authorization": f"Bearer {self.token['access_token']}", "Content-Type": "application/json"},
+                            data=dumps(data))
+        return response.status_code
+
+    def delete_task(self, task_id):
+
+        response = req.delete(url=f"{self.url}/tasks/{task_id}",
+                              headers={"Authorization": f"Bearer {self.token['access_token']}", "Content-Type": "application/json"}
+                              )
+
+        return response.status_code
+
+
+    def toggle_database_complete(self, task_id, task_complete, task_description, task_title, task_priority):
+        response = req.put(url=f"{self.url}/tasks/{task_id}",
+                           headers={"Authorization": f"Bearer {self.token['access_token']}", "Content-Type": "application/json"},
+                           data=dumps({
+                               "complete": task_complete,
+                               "description": task_description,
+                               "title": task_title,
+                               "priority": task_priority
+                           })
+                           )
+        print(response)
+        return response.status_code
+
+
     def create_header(self):
         self.header_frame = tb.Frame(self, bootstyle=PRIMARY)
 
@@ -63,6 +103,7 @@ class TaskApp(tb.Window):
 
 
     def show_task_view(self):
+
         self.set_current_view("view_task")
 
     def show_tasks_view(self):
