@@ -101,18 +101,16 @@ class TaskApp(tb.Window):
     def show_login_view(self):
         self.set_current_view("login")
 
-
     def show_task_view(self):
 
         self.set_current_view("view_task")
 
     def show_tasks_view(self):
         self.set_current_view("view_tasks")
-
+        self.views.get("view_tasks").create_widgets()
 
     def show_create_task_view(self):
         self.set_current_view("create_task")
-
 
     def set_current_view(self, key):
         self.destroy_current_view()

@@ -143,6 +143,7 @@ class TasksView(View):
         super().__init__(app)
 
         self.all_tasks = []
+        self.all_tasks_widgets = []
 
         # self.create_widgets()
 
@@ -154,30 +155,28 @@ class TasksView(View):
         print(self.all_tasks)
 
 
-        show_all_tasks = AllTasks(self.frame)
+        self.make_tasks()
 
-        for index, task in enumerate(self.all_tasks):
-            TaskForList(self.frame, app=self.app, task=task, task_index=index)
+    def make_tasks(self):
+        if self.all_tasks:
+            self.show_all_tasks = AllTasks(self.frame)
 
-        task_buttons = TaskButtons(self.frame, app=self.app)
+            if self.all_tasks_widgets:
+                self.show_all_tasks.destroy()
+                self.task_buttons.destroy()
+                for frame in self.all_tasks_widgets:
+                    frame.destroy()
+                print("test")
 
+            for index, task in enumerate(self.all_tasks):
+                task_widgets = TaskForList(self.frame, app=self.app, task=task, task_index=index)
+                self.all_tasks_widgets.append(task_widgets)
+                print(self.all_tasks_widgets)
 
+            self.task_buttons = TaskButtons(self.frame, app=self.app)
 
-        #
-        # create_button = tb.Button(self.frame, text="Create Task", command=self.app.show_create_task_view, bootstyle=SUCCESS)
-        # create_button.pack(anchor=NE,
-        #                    pady=(20,0)
-        #                    )
-        #
-        # edit_button = tb.Button(self.frame, text="Edit Task", command=self.app.show_create_task_view, bootstyle=(SUCCESS, OUTLINE))
-        # edit_button.pack(anchor=NE,
-        #                  pady=(20, 0)
-        #                  )
-        #
-        # delete_button = tb.Button(self.frame, text="Delete Task", command=self.app.show_create_task_view, bootstyle=DANGER)
-        # delete_button.pack(anchor=NE,
-        #                    pady=(20, 0)
-        #                    )
+        return self.all_tasks_widgets
+
 
 
 class TaskView(View):
@@ -292,27 +291,26 @@ class CreateTaskView(View):
 
         try:
             response = self.app.create_task(task_title=task_title,
-                                           task_description=task_description,
-                                           task_priority=task_priority
-                                           )
+                                            task_description=task_description,
+                                            task_priority=task_priority
+                                            )
+            print(response)
             print(self.priority_meter.amountusedvar.get())
 
             if response == 201:
-                # self.app.views.get("view_tasks").create_widgets()
-
-                #Honestly dont know how to get this to work, want it to add task to view_tasks in the same instance of the app it was made in... :(
                 self.app.views.get("view_tasks").all_tasks = req.get(f"{self.app.url}/tasks",
                                                                      headers={
                                                                          "Authorization": f"Bearer {self.app.token['access_token']}",
                                                                          "Content-Type": "application/json"}).json()
-                task = self.app.views.get("view_tasks").all_tasks[-1]
-                print(task)
-                print(task["id"])
-                TaskForList(self.frame, app=self.app, task=task, task_index=task["id"])
+                # new_task_view = TasksView(app=self.app)
+                # self.app.show_tasks_view()
+                # print(new_task_view.tasks)
+
+                #Honestly dont know how to get this to work, want it to add task to view_tasks in the same instance of the app it was made in... :(
+                # self.app.views("view_tasks").make_tasks(self.frame)
 
                 self.create_toast("Task Created", f"Task '{task_title}' created successfully")
-                 # After creating the task, show the task page
-                self.app.show_task_view()
+                # After creating the task, show the task page
 
             else:
                 self.create_toast(f"{response} Error", "Could Not Create Task")
