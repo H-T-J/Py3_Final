@@ -154,7 +154,6 @@ class TasksView(View):
         # self.get_tasks()
         print(self.all_tasks)
 
-
         self.make_tasks()
 
     def make_tasks(self):
@@ -303,7 +302,7 @@ class CreateTaskView(View):
                                                                          "Authorization": f"Bearer {self.app.token['access_token']}",
                                                                          "Content-Type": "application/json"}).json()
                 # new_task_view = TasksView(app=self.app)
-                # self.app.show_tasks_view()
+                self.app.show_tasks_view()
                 # print(new_task_view.tasks)
 
                 #Honestly dont know how to get this to work, want it to add task to view_tasks in the same instance of the app it was made in... :(
