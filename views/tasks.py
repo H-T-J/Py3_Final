@@ -54,13 +54,14 @@ class TaskForList(tb.Frame):
         self.status_bool = tb.BooleanVar
         self.status_bool = self.task.get("complete")
 
-        self.index_label = tb.Label(self, text=f"#{task_index+1}", bootstyle=PRIMARY, font=PS, anchor=N)
-        self.name_button = tb.Button(self, text=self.task.get("title"), command=None, bootstyle=(PRIMARY, LINK))
+        self.index_label = tb.Label(self, text=f"#{task_index+1}", bootstyle=PRIMARY, font=PS, anchor=N, width=5)
+
+        self.name_button = tb.Button(self, text=self.task.get("title"), command=self.get_current_task, bootstyle=(PRIMARY, LINK), width=20)
 
         self.status = "✅" if self.task.get("complete") else "❎"
         self.label_color = SUCCESS if self.status_bool else DANGER
 
-        self.status_label = tb.Label(self, text=self.status, bootstyle=self.label_color, font=PS)
+        self.status_label = tb.Label(self, text=self.status, bootstyle=self.label_color, font=PS, width=5)
 
         # detail_button = tb.Button(self, text="To task detail", command=app.show_task_view, bootstyle=PRIMARY)
         self.detail_button = tb.Button(self, text="Toggle Completion", command=self.toggle_completion, bootstyle=PRIMARY)
@@ -78,6 +79,39 @@ class TaskForList(tb.Frame):
         # task = tb.Label(self, text=label_text, padding=(50, 0), font=PS, bootstyle=(PRIMARY, INVERSE),
         #                     borderwidth=10)
         # task.pack(pady=5)
+
+    def get_current_task(self):
+        print(self.task["id"])
+        response = req.get(url=f"{self.app.url}/tasks/{self.task['id']}",
+                           headers={"Authorization": f"Bearer {self.app.token['access_token']}",
+                                    "Content-Type": "application/json"})
+        if response.status_code == 200:
+            self.app.current_task = response.json()
+
+            print(self.app.current_task)
+
+            self.app.views.get("view_task").task_name.set(self.app.current_task.get("title"))
+            self.app.views.get("view_task").task_description.set(self.app.current_task.get("description"))
+            self.app.views.get("view_task").task_priority.set(self.app.current_task.get("priority"))
+
+            print(self.app.current_task.get("complete"))
+            if self.app.current_task.get("complete"):
+                self.app.views.get("view_task").task_status_text.set("Complete")
+            else:
+                self.app.views.get("view_task").task_status_text.set("Not Complete")
+
+
+            self.app.show_task_view()
+        else:
+            self.create_toast(f"{response} Error", "Could Not Get Task Details")
+
+
+        # self.app.current_task = self.task.get("id")
+        # print(self.app.current_task)
+        # self.app.views("view_task").task = self.app.get_task()
+        # print("jnxwkj")
+        # print(self.app.views("view_task").task)
+        # self.app.show_task_view()
 
     def return_task_id(self):
         task_id = self.task["id"]
@@ -179,7 +213,7 @@ class TasksView(View):
 
 
 class TaskView(View):
-    def __init__(self, app):
+    def __init__(self, app, current_task):
         super().__init__(app)
 
     def create_widgets(self):
@@ -195,10 +229,13 @@ class TaskView(View):
                 "done": True
             }
 
+
+
         self.task_name = tb.StringVar(value=self.task.get("name"))
         self.task_description = tb.StringVar(value=self.task.get("description"))
         self.task_priority = tb.StringVar(value=self.task.get("priority"))
-        self.task_status = tb.BooleanVar(value=self.task.get("complete"))
+
+        self.task_status_text = tb.StringVar(value="")
 
 
         manager_label = tb.Label(self.frame, text="Task Manager", font=H6, )
@@ -207,12 +244,16 @@ class TaskView(View):
 
         name_label = tb.Label(self.frame, text="Task Name:")
         name_value = tb.Label(self.frame, textvariable=self.task_name, font=H6, bootstyle=PRIMARY)
+
         description_label = tb.Label(self.frame, text="Task Description:")
         description_value = tb.Label(self.frame, textvariable=self.task_description, font=H6, bootstyle=PRIMARY)
+
         priority_label = tb.Label(self.frame, text="Task Priority:")
         priority_value = tb.Label(self.frame, textvariable=self.task_priority, font=H6, bootstyle=PRIMARY)
 
-        done_toggle = tb.Checkbutton(self.frame, bootstyle="Roundtoggle.Toolbutton", text="Completion Status", variable=self.task_status, onvalue=self.task_status, offvalue=self.task_status)
+        status_label = tb.Label(self.frame, text="Task Status:")
+        status_value = tb.Label(self.frame, textvariable=self.task_status_text, font=H6, bootstyle=PRIMARY)
+
 
 
         submit_button = tb.Button(self.frame, text="Submit", bootstyle=SUCCESS)
@@ -229,18 +270,13 @@ class TaskView(View):
         priority_label.pack(anchor="w")
         priority_value.pack(pady=(0, 30), fill=X)
 
-        done_toggle.pack()
+        status_label.pack(anchor="w")
+        status_value.pack(pady=(0, 30), fill=X)
 
         submit_button.pack(anchor="se", expand=True)
 
 
-    def submit_changes(self, ):
-        print(self.task.get("complete"))
 
-    def toggle_checkbutton(self):
-        # Toggle the state of the Checkbutton
-        self.task["complete"] = self.task_status.get()
-        self.task_status.set(not self.task_status.get())
 
 class CreateTaskView(View):
     def __init__(self, app):
@@ -256,7 +292,7 @@ class CreateTaskView(View):
         return_button = tb.Button(self.frame, text="Back to View Tasks", command=self.app.show_tasks_view)
         # return_button = tb.Button(self.frame, text="Back to View Tasks", command=self.submit_changes)
 
-        name_label = tb.Label(self.frame, text="Task Name:")
+        name_label = tb.Label(self.frame, text="Task Name: (22 characters or less)")
         self.name_value = tb.Entry(self.frame, textvariable=self.task_title_var, font=H6, bootstyle=PRIMARY)
         description_label = tb.Label(self.frame, text="Task Description:")
         self.description_value = tb.Entry(self.frame, textvariable=self.task_description_var, font=H6, bootstyle=PRIMARY)

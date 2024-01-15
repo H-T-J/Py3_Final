@@ -14,22 +14,26 @@ class TaskApp(tb.Window):
         self.title("Task Manager")
         self.geometry("854x640")
 
+
         # User variables
         self.authenticated = False
         self.email = tb.StringVar()
         self.token: dict = {}
 
-        self.url = "http://192.168.50.220:8000"
+        self.url = "http://10.6.21.19:8000"
 
         self.tasks = []
 
         # Views variables
         self.current_view = None
         self.header_frame = None
+
+        self.current_task = None
+
         self.views = {
             "login": login.LoginView(self),
             "view_tasks": tasks.TasksView(self),
-            "view_task": tasks.TaskView(self),
+            "view_task": tasks.TaskView(self, current_task=self.current_task),
             "create_task": tasks.CreateTaskView(self)
         }
 
@@ -46,6 +50,11 @@ class TaskApp(tb.Window):
     #                         "Content-Type": "application/json"}).json()
     #
     #     return self.tasks
+
+    # def get_task(self):
+
+
+
     def create_task(self, task_title, task_description, task_priority):
         data = {
             "complete": False,
